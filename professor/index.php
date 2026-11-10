@@ -28,15 +28,16 @@ $st = $pdo->prepare('SELECT a.id, a.nome, t.nome AS turma, COUNT(l.id) AS qtd,
 $st->execute([$escolaId]);
 $top = $st->fetchAll();
 
-$st = $pdo->prepare('SELECT a.id, a.nome, t.nome AS turma,
-        MAX(l.data_leitura) AS ultima
-    FROM alunos a
-    LEFT JOIN turmas t ON t.id = a.turma_id
-    LEFT JOIN leituras l ON l.aluno_id = a.id AND l.escola_id = a.escola_id
-    WHERE a.escola_id = ? AND a.status = "ativo"
-    GROUP BY a.id, a.nome, t.nome
-    HAVING ultima IS NULL OR ultima < (CURDATE() - INTERVAL 30 DAY)
-    ORDER BY ultima IS NULL DESC, ultima ASC LIMIT 6');
+$st = $pdo->prepare('SELECT * FROM (
+        SELECT a.id, a.nome, t.nome AS turma, MAX(l.data_leitura) AS ultima
+        FROM alunos a
+        LEFT JOIN turmas t ON t.id = a.turma_id
+        LEFT JOIN leituras l ON l.aluno_id = a.id AND l.escola_id = a.escola_id
+        WHERE a.escola_id = ? AND a.status = "ativo"
+        GROUP BY a.id, a.nome, t.nome
+    ) AS ult
+    WHERE ult.ultima IS NULL OR ult.ultima < (CURDATE() - INTERVAL 30 DAY)
+    ORDER BY ult.ultima IS NULL DESC, ult.ultima ASC LIMIT 6');
 $st->execute([$escolaId]);
 $acompanhar = $st->fetchAll();
 
