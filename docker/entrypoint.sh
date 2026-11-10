@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # LER BEM - inicializa MariaDB, cria banco/usuario e instala o esquema na primeira execucao.
-set -euo pipefail
+set -eu
 
 DB_NAME="${DB_NAME:-ler_bem}"
 DB_USER="${DB_USER:-lerbem}"
@@ -25,7 +25,8 @@ chmod 600 "$PASS_FILE"
 if [ ! -d /var/lib/mysql/mysql ]; then
   echo "[i] Inicializando o diretorio de dados do MariaDB..."
   mariadb-install-db --user=mysql --datadir=/var/lib/mysql \
-    --auth-root-authentication-method=normal --skip-test-db >/dev/null 2>&1
+    --auth-root-authentication-method=normal --skip-test-db >/dev/null 2>&1 || {
+      echo "[x] Falha ao inicializar o MariaDB." >&2; exit 1; }
 fi
 
 echo "[i] Iniciando o MariaDB..."
@@ -33,12 +34,14 @@ mariadbd --user=mysql --datadir=/var/lib/mysql \
   --socket="$SOCKET" --bind-address="$DB_HOST" --port=3306 &
 MYSQL_PID=$!
 
-for _ in $(seq 1 90); do
+i=0
+while [ "$i" -lt 90 ]; do
   if mariadb-admin --socket="$SOCKET" ping >/dev/null 2>&1; then break; fi
   if ! kill -0 "$MYSQL_PID" 2>/dev/null; then
     echo "[x] O MariaDB encerrou durante a inicializacao." >&2
     exit 1
   fi
+  i=$((i + 1))
   sleep 1
 done
 
@@ -59,14 +62,13 @@ GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}'@'localhost';
 FLUSH PRIVILEGES;
 SQL
 
-export DB_HOST DB_NAME DB_USER
+export DB_HOST DB_NAME DB_USER DB_PORT="3306"
 export DB_PASSWORD="$DB_PASS"
-export DB_PORT="3306"
 
 # Instalador idempotente: cria o esquema e, se ainda nao houver usuarios, os dados iniciais
 if [ -z "${ADMIN_EMAIL:-}" ]; then export ADMIN_EMAIL="admin@lerbem.local"; fi
 if [ -z "${ADMIN_PASSWORD:-}" ]; then
-  export ADMIN_PASSWORD="$(head -c 9 /dev/urandom | base64 | tr -d '/+=' )Aa1!"
+  export ADMIN_PASSWORD="$(head -c 9 /dev/urandom | base64 | tr -d '/+=')Aa1!"
   echo "=============================================================="
   echo "[i] Senha inicial do administrador (altere apos o primeiro acesso):"
   echo "    E-mail: ${ADMIN_EMAIL}"
@@ -74,7 +76,8 @@ if [ -z "${ADMIN_PASSWORD:-}" ]; then
   echo "=============================================================="
 fi
 
-php /var/www/html/database/install_cli.php || echo "[!] Instalacao automatica retornou erro; verifique as mensagens acima."
+php /var/www/html/database/install_cli.php \
+  || echo "[!] Instalacao automatica retornou erro; verifique as mensagens acima."
 
 # O PHP roda como www-data e precisa ler a configuracao gerada
 if [ -f /var/www/html/config/config.local.php ]; then
@@ -83,6 +86,10 @@ if [ -f /var/www/html/config/config.local.php ]; then
 fi
 
 chown -R www-data:www-data /var/www/html/uploads
+
+echo "[i] Iniciando o PHP-FPM..."
+php-fpm -D
+
 echo "[i] LER BEM pronto na porta ${PORT:-3000}."
 
 exec "$@"

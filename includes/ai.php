@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 function lb_ai_disponivel(): bool
 {
-    return trim((string) lb_config('ai.api_key', '')) !== '';
+    return trim((string) lb_config('ai.api_key', '')) !== '' && function_exists('curl_init');
 }
 
 function lb_ai_info(): array
