@@ -361,6 +361,33 @@ function lb_paginacao(int $total, int $porPagina, int $pagina, array $params = [
     return ['offset' => $offset, 'pagina' => $pagina, 'paginas' => $paginas, 'html' => $html];
 }
 
+function lb_turmas_escola(int $escolaId, bool $somenteAtivas = true): array
+{
+    $sql = 'SELECT id, nome, ano_letivo, turno FROM turmas WHERE escola_id = ?'
+        . ($somenteAtivas ? ' AND ativo = 1' : '')
+        . ' ORDER BY ano_letivo DESC, nome ASC';
+    $st = db()->prepare($sql);
+    $st->execute([$escolaId]);
+    return $st->fetchAll();
+}
+
+function lb_alunos_escola(int $escolaId): array
+{
+    $st = db()->prepare('SELECT id, nome, turma_id FROM alunos WHERE escola_id = ? ORDER BY nome ASC');
+    $st->execute([$escolaId]);
+    return $st->fetchAll();
+}
+
+function lb_professor_id(array $u): int
+{
+    if (!empty($u['professor_id'])) {
+        return (int) $u['professor_id'];
+    }
+    $st = db()->prepare('SELECT id FROM professores WHERE usuario_id = ? AND escola_id = ?');
+    $st->execute([$u['id'], $u['escola_id']]);
+    return (int) ($st->fetchColumn() ?: 0);
+}
+
 function lb_old(string $chave, string $padrao = ''): string
 {
     $v = $_SESSION['_old'][$chave] ?? $padrao;

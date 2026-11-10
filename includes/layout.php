@@ -99,7 +99,6 @@ function lb_nav_admin(): array
         ['dashboard', 'Visao geral', 'grid', 'admin/index.php'],
         ['escolas', 'Escolas', 'school', 'admin/escolas.php'],
         ['professores', 'Professores', 'users', 'admin/professores.php'],
-        ['relatorios', 'Relatorios', 'report', 'professor/relatorios.php'],
     ];
 }
 

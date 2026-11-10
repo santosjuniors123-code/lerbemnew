@@ -144,7 +144,7 @@ lb_shell_start('Dashboard', [
 
 <div class="grid grid-2 mt-24">
   <div class="card">
-    <div class="card-head"><?= lb_icon('alert') ?><div><h2>Precisam de acompanhamento</h2><p>Sem leitura nos ultimos 30 dias</p></div></div>
+    <div class="card-head"><?= lb_icon('warning') ?><div><h2>Precisam de acompanhamento</h2><p>Sem leitura nos ultimos 30 dias</p></div></div>
     <?php if (!$acompanhar): ?>
       <?= lb_empty('check', 'Todos em dia', 'Nenhum aluno ficou 30 dias sem registrar leitura.') ?>
     <?php else: ?>
