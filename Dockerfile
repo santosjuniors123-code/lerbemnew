@@ -1,6 +1,6 @@
 # LER BEM - PHP 8.4 (Apache) + MariaDB em um unico container.
 # Aplicacao PHP tradicional: sem Node.js no servidor de producao.
-FROM php:8.4-apache
+FROM php:8.4.27-apache
 
 ENV DEBIAN_FRONTEND=noninteractive \
     APACHE_DOCUMENT_ROOT=/var/www/html
@@ -19,6 +19,7 @@ RUN docker-php-ext-install -j"$(nproc)" pdo_mysql mbstring \
  && a2enmod rewrite headers \
  && rm -f /etc/apache2/sites-enabled/000-default.conf
 
+COPY docker/php-security.ini /usr/local/etc/php/conf.d/zz-ler-bem-security.ini
 COPY docker/apache-ler-bem.conf /etc/apache2/sites-available/ler-bem.conf
 COPY docker/mariadb-ler-bem.cnf /etc/mysql/mariadb.conf.d/99-ler-bem.cnf
 COPY docker/entrypoint.sh /usr/local/bin/ler-bem-entrypoint
