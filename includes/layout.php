@@ -118,6 +118,7 @@ function lb_shell_start(string $titulo, array $opcoes = []): void
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0f766e">
+<meta name="csrf-token" content="<?= e(csrf_token()) ?>">
 <title><?= e($titulo) ?> · LER BEM</title>
 <link rel="icon" href="<?= e(lb_url('assets/img/logo.svg')) ?>" type="image/svg+xml">
 <link rel="stylesheet" href="<?= e(lb_url('assets/css/style.css')) ?>">
@@ -126,7 +127,7 @@ function lb_shell_start(string $titulo, array $opcoes = []): void
 <?php endif; ?>
 <script src="<?= e(lb_url('assets/js/app.js')) ?>" defer></script>
 </head>
-<body class="<?= e($corpoClasse) ?>">
+<body class="<?= e($corpoClasse) ?>" data-base="<?= e(lb_base()) ?>">
 <?php if ($contexto === 'professor' || $contexto === 'admin'): ?>
 <div class="app">
   <aside class="sidebar" id="sidebar">
