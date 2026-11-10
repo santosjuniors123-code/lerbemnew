@@ -29,10 +29,10 @@ RUN rm -rf /var/www/html/.git /var/www/html/.github \
  && mkdir -p /var/www/html/uploads /var/www/html/config \
  && chown -R www-data:www-data /var/www/html/uploads /var/www/html/config
 
-EXPOSE 3000
+EXPOSE 80 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=75s --retries=5 \
-  CMD wget -q -O /dev/null http://127.0.0.1:3000/login.php || exit 1
+  CMD wget -q -O /dev/null http://127.0.0.1/login.php || exit 1
 
 ENTRYPOINT ["/usr/local/bin/ler-bem-entrypoint"]
 CMD ["nginx", "-g", "daemon off;"]

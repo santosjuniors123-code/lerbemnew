@@ -31,7 +31,7 @@ fi
 
 echo "[i] Iniciando o MariaDB..."
 mariadbd --user=mysql --datadir=/var/lib/mysql \
-  --socket="$SOCKET" --bind-address="$DB_HOST" --port=3306 &
+  --socket="$SOCKET" --bind-address="$DB_HOST" --port=3306 --skip-networking=0 &
 MYSQL_PID=$!
 
 i=0
@@ -65,6 +65,16 @@ SQL
 export DB_HOST DB_NAME DB_USER DB_PORT="3306"
 export DB_PASSWORD="$DB_PASS"
 
+# Espera a conexao TCP ficar disponivel para o usuario da aplicacao
+i=0
+while [ "$i" -lt 40 ]; do
+  if mariadb --protocol=TCP -h "$DB_HOST" -P 3306 -u "$DB_USER" -p"$DB_PASS" -e 'SELECT 1' >/dev/null 2>&1; then
+    break
+  fi
+  i=$((i + 1))
+  sleep 1
+done
+
 # Instalador idempotente: cria o esquema e, se ainda nao houver usuarios, os dados iniciais
 if [ -z "${ADMIN_EMAIL:-}" ]; then export ADMIN_EMAIL="admin@lerbem.local"; fi
 if [ -z "${ADMIN_PASSWORD:-}" ]; then
@@ -77,7 +87,9 @@ if [ -z "${ADMIN_PASSWORD:-}" ]; then
 fi
 
 php /var/www/html/database/install_cli.php \
-  || echo "[!] Instalacao automatica retornou erro; verifique as mensagens acima."
+  || { echo "[!] Nova tentativa de instalacao em 5s..."; sleep 5; \
+       php /var/www/html/database/install_cli.php \
+       || echo "[!] Instalacao automatica retornou erro; verifique as mensagens acima."; }
 
 # O PHP roda como www-data e precisa ler a configuracao gerada
 if [ -f /var/www/html/config/config.local.php ]; then
@@ -90,6 +102,6 @@ chown -R www-data:www-data /var/www/html/uploads
 echo "[i] Iniciando o PHP-FPM..."
 php-fpm -D
 
-echo "[i] LER BEM pronto na porta ${PORT:-3000}."
+echo "[i] LER BEM pronto nas portas 80/3000."
 
 exec "$@"
