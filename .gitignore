@@ -1,0 +1,15 @@
+# Configuracao local gerada pelo instalador (credenciais)
+config/config.local.php
+
+# Uploads de usuarios
+uploads/*
+!uploads/.htaccess
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+*.log
+.env
+
+# Pacote de entrega gerado localmente
+ler-bem-*.zip
