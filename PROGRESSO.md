@@ -22,7 +22,7 @@ Status do desenvolvimento e da entrega. Atualizado na publicação da versão im
 | Administração (escolas e professores) | `admin/index.php`, `escolas.php`, `escola_form.php`, `professores.php`, `professor_form.php` | Concluído |
 | Configurações da escola/conta | `professor/configuracoes.php` | Concluído |
 | Container de produção | `Dockerfile`, `docker/nginx-ler-bem.conf`, `docker/php-security.ini`, `docker/mariadb-ler-bem.cnf`, `docker/entrypoint.sh` | Concluído — imagem aprovada no scan |
-| Deploy | Build `build-1794281102899-e4f93f9e` | Concluído — https://fdcqtih45b.dev.onappjet.com |
+| Deploy | Build `build-1794282162900-3abc2ba8` (revisão 81) | Concluído — https://fdcqtih45b.dev.onappjet.com |
 
 ## Verificado
 
@@ -31,14 +31,19 @@ Status do desenvolvimento e da entrega. Atualizado na publicação da versão im
 - Scan de vulnerabilidades da imagem: 38 pacotes, 0 achados bloqueantes.
 - `PHP_VERSION` 8.4.27 confirmado dentro da imagem final.
 - Produção: 3 sondagens HTTP 200 consecutivas; `/` e `/login.php` em 1280 px e 390 px sem erros.
-- Instalação automática do banco em produção (turmas criadas aparecem na página inicial).
+- Instalação automática do banco em produção (esquema, escola, 4 turmas e administrador).
+- **Fluxos reais executados no app publicado (revisão 81, sem erros de página ou console):**
+  - login do administrador e cadastro de professor;
+  - login do professor e abertura do dashboard (totais, "Precisam de acompanhamento", gráficos);
+  - criação de turma e de aluno vinculado à turma, com mensagem de sucesso e listagem;
+  - identificação do aluno sem login (nome + escola + turma) e registro de leitura com a **data do
+dia**, com confirmação e página de detalhe (título, autor, data, páginas, resumo).
 
 ## Pendências e recomendações
 
-- **Validar manualmente** os fluxos de escrita na sua instalação: cadastro/edição/exclusão de alunos e
-  turmas, registro de leitura, resposta e correção de questionário, exportações CSV/PDF. A verificação
-  automatizada cobriu carga de páginas, banco instalado e ausência de erros de execução — não
-  submissões de formulário.
+- **Validar manualmente** os fluxos restantes na sua instalação: edição/exclusão de alunos e turmas,
+  resposta e correção de questionário (objetivas e abertas) e exportações CSV/PDF. Já verificados no
+  app publicado: login, cadastro de professor, criação de turma/aluno, dashboard e registro de leitura.
 - **Trocar a senha inicial** do administrador após o primeiro acesso.
 - **Configurar a IA** apenas se desejar: `AI_API_KEY`, `AI_API_URL`, `AI_MODEL`. Sem chave, o módulo
   fica indisponível e o sistema continua íntegro.
@@ -56,3 +61,12 @@ Status do desenvolvimento e da entrega. Atualizado na publicação da versão im
 3. MariaDB subia com `port: 0` (pacote Alpine desativa TCP), quebrando a instalação automática →
    `--skip-networking=0 --port=3306` no entrypoint, `skip-networking = 0` no `my.cnf` e espera pela
    conexão TCP antes de rodar o instalador.
+4. Dashboard do professor retornava **HTTP 500** (`Reference 'ultima' not supported`) porque o MariaDB
+   não aceita `ORDER BY`/`HAVING` com expressão sobre alias de agregação → consulta reescrita com
+   *derived table* em `professor/index.php`.
+5. Erro de JavaScript "Canvas is already in use" nos gráficos: `initCharts()` executava duas vezes na
+   mesma página → guarda por canvas (`data-chart-done`) e `Chart.getChart(cv).destroy()` antes de
+   recriar, em `assets/js/app.js`.
+6. Leitura com a data de **hoje** era recusada como "data no futuro":
+   `createFromFormat('Y-m-d', ...)` preenche hora/minuto com o relógio atual, ficando maior que a
+   meia-noite de hoje → formato `'!Y-m-d'` em `aluno/leitura_nova.php` e `professor/aluno_form.php`.

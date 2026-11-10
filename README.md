@@ -170,12 +170,25 @@ questionários respondidos e aproveitamento, com filtros por data, turma e aluno
   `PHP_VERSION` 8.4.27 verificado dentro da imagem final.
 - Deploy verificado em produção: 3 sondagens HTTP consecutivas com status 200 e rotas `/` e
   `/login.php` renderizando corretamente em 1280 px e 390 px (mobile), sem erros de página.
-- Instalação automática do banco comprovada em produção: a página inicial lista as turmas criadas
-  pelo instalador.
+- Instalação automática do banco comprovada em produção: esquema aplicado, escola e 4 turmas criadas,
+  administrador cadastrado.
+- **Fluxos reais executados no app publicado (revisão 81), sem erros de página ou console:** login do
+  administrador, cadastro de professor, login do professor, dashboard, criação de turma, criação de
+  aluno vinculado à turma, identificação do aluno sem login e registro de leitura com a data do dia
+  (confirmação + página de detalhe).
 
-Fluxos de formulário (cadastro/edição/exclusão, respostas de questionário, exportações) devem ser
-validados manualmente na sua instalação com dados reais — a verificação automatizada cobriu carga de
-páginas, banco instalado e ausência de erros de execução.
+### Correções encontradas nessa verificação
+
+1. Dashboard do professor retornava HTTP 500 por causa de `ORDER BY`/`HAVING` sobre alias de agregação
+   (não suportado pelo MariaDB) — reescrito com *derived table*.
+2. Gráficos criavam duas instâncias de Chart.js no mesmo canvas — agora há guarda por canvas e
+   destruição da instância anterior.
+3. Leitura com a data de hoje era recusada como "futura": `createFromFormat('Y-m-d', ...)` preenche a
+   hora com o relógio atual — corrigido com o modificador `'!'` (`'!Y-m-d'`).
+
+Ainda devem ser validados manualmente na sua instalação: edição/exclusão de alunos e turmas, resposta
+
+e correção de questionário e exportações CSV/PDF.
 
 ---
 
