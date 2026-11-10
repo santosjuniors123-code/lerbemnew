@@ -185,9 +185,14 @@
   function initCharts() {
     if (typeof window.Chart === 'undefined') return;
     $$('canvas[data-chart]').forEach(function (cv) {
+      if (cv.dataset.chartDone === '1') return;
       var cfg;
       try { cfg = JSON.parse(cv.getAttribute('data-chart')); } catch (e) { return; }
       if (!cfg || !cfg.type) return;
+      if (window.Chart.getChart) {
+        var existente = window.Chart.getChart(cv);
+        if (existente) existente.destroy();
+      }
       cfg.options = Object.assign({
         responsive: true,
         maintainAspectRatio: false,
@@ -200,6 +205,7 @@
           y: { beginAtZero: true, grid: { color: '#eef3f2' }, ticks: { color: '#6b7f92', precision: 0, font: { size: 11 } } }
         }
       }, cfg.options || {});
+      cv.dataset.chartDone = '1';
       new window.Chart(cv, cfg);
     });
   }
@@ -207,8 +213,7 @@
   document.addEventListener('DOMContentLoaded', function () {
     initEscolaTurmas();
     initIA();
-    window.setTimeout(initCharts, 120);
-    if (window.Chart) initCharts();
+    if (window.Chart) { initCharts(); } else { window.setTimeout(initCharts, 120); }
     $$('form[data-loading]').forEach(function (f) { f.addEventListener('input', function () {}); });
   });
   window.addEventListener('load', initCharts);
