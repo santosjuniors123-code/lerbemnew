@@ -1,0 +1,2 @@
+# Bloqueia acesso web direto aos includes
+Require all denied
