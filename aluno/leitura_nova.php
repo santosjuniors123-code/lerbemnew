@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (mb_strlen($autor) > 150) {
         $erros[] = 'O nome do autor deve ter no maximo 150 caracteres.';
     }
-    $dt = DateTimeImmutable::createFromFormat('Y-m-d', $data);
+    $dt = DateTimeImmutable::createFromFormat('!Y-m-d', $data);
     $hoje = new DateTimeImmutable('today');
     if (!$dt || $dt->format('Y-m-d') !== $data) {
         $erros[] = 'Informe uma data de leitura valida.';

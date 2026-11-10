@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     if ($nascimento !== '') {
-        $dt = DateTimeImmutable::createFromFormat('Y-m-d', $nascimento);
+        $dt = DateTimeImmutable::createFromFormat('!Y-m-d', $nascimento);
         if (!$dt || $dt->format('Y-m-d') !== $nascimento || $dt > new DateTimeImmutable('today')) {
             $erros[] = 'Informe uma data de nascimento valida.';
         }
