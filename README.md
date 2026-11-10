@@ -164,7 +164,8 @@ questionários respondidos e aproveitamento, com filtros por data, turma e aluno
 
 ## 8. Verificações executadas
 
-- Sintaxe PHP validada em todos os arquivos (`php -l`).
+- Sintaxe PHP validada em todos os arquivos: `bash scripts/check-php.sh` (o script percorre o projeto e
+  sai com código 1 se algum arquivo falhar em `php -l`).
 - `check_deployment` sem erros (porta 80).
 - Imagem Docker aprovada no scan de vulnerabilidades (38 pacotes, 0 achados bloqueantes) e
   `PHP_VERSION` 8.4.27 verificado dentro da imagem final.
